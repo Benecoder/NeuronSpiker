@@ -18,5 +18,5 @@ for label_index in range(1,data.shape[0]):
 
 
 ax.set_xlabel('time in ms')
-ax.legend(loc='lower left')
+ax.legend(loc='lower right')
 plt.show()
