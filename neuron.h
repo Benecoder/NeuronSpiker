@@ -5,6 +5,7 @@
 class Neuron {
     public:
         double u;           // voltage across the neuron
+        double u_out;       // output voltage 
         double threshhold;  // firing threshhold
         double r;           // resistance of the membrane
         double c;           // capacity of the activation
@@ -26,13 +27,16 @@ void Neuron::init(double u_in,double threshhold_in,double r_in,double c_in,doubl
     u_reset = u_reset_in;
 
     tau = r*c;
+    u_out = 0.;
 }
 
 double Neuron::current(double u, double dt){
     if (u>threshhold){
-        return (u_reset-u);
+        u_out = u-u_reset;
+        return -u_out;
     } else {
-        return 0;
+        u_out = 0.;
+        return u_out;
     }
 }
 
