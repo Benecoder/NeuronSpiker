@@ -2,16 +2,9 @@
 #include <cstdlib>
 #include <cmath>
 #include <vector>
-#include "neuron.h"
+#include "neuron2.h"
 
 using namespace std;
-
-
-double generator(double min, double max){
-	double r_number = (double)rand()/RAND_MAX;
-	double range = max-min;
-	return min+range*r_number;
-};
 
 vector<double> vector_generator(double min,double max,int length) {
 	vector<double> result(length);
@@ -48,7 +41,7 @@ void Connectome::prune_weights(){
 
 void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 
-	srand(3);
+	srand(2);
 	
 	n_neurons = n_neurons_in;
 	pruning_threshhold = pruning_threshhold_in;
@@ -62,18 +55,21 @@ void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 		//Nodes
 		Neuron buffer_neuron;
 		buffer_neuron.init(
-			generator(-10.,10), 	// voltage
-			generator(5.,25),		// firing threshhold
-			generator(0.,1),		// resistance
-			generator(0.,.5),		// capacity
-			generator(-5.,5.),		// rest voltage
-			generator(-30.,-10.),	// reset voltage
-			generator(30.,30.));	// peak voltage
+			generator(0.,10), 	// voltage across the neuron
+			generator(0.,18),		// firing threshhold
+			generator(30.,30.),		// reset threshhold
+			generator(0.,.02),		// resistance of the membrane
+			generator(0.,.5),		// capacity of the activation
+			generator(2.,2.),		// sharpness of the peak
+			generator(-3.,3.),	// resting voltage
+			generator(-10.,-5.));	// reset voltage
+
 		neurons.push_back(buffer_neuron);
 
 	}
 	prune_weights();
 }
+
 
 void Connectome::step(double dt) {
 
@@ -93,7 +89,7 @@ void Connectome::step(double dt) {
 
 	//calculate step
 	for(neuron_index=0;neuron_index<n_neurons;neuron_index++){
-		neurons[neuron_index].du(dt,external_current[neuron_index]);
+		neurons[neuron_index].step(dt,external_current[neuron_index]);
 	}
 }
 
@@ -101,7 +97,7 @@ int main(){
 
 
 	Connectome Alpha;
-	Alpha.random_init(300,0.3);
+	Alpha.random_init(300,0.5);
 
 	double dt=0.01;
 	double t;
