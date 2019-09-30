@@ -50,18 +50,17 @@ void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 	for(i=0;i<n_neurons;i++){
 
 		//Connections		
-		weights.push_back(vector_generator(-0.1,1.,n_neurons));
+		weights.push_back(vector_generator(0.,1.,n_neurons));
 
 		//Nodes
 		Neuron buffer_neuron;
-		buffer_neuron.init(
-			generator(0.,10), 	// voltage across the neuron
-			generator(0.,18),		// firing threshhold
-			generator(30.,30.),		// reset threshhold
-			generator(0.,.02),		// resistance of the membrane
+		buffer_neuron.init(generator(-10.,10.), 	// voltage across the neuron
+			generator(0.,25.),		// firing threshhold
+			30.,				// reset threshhold
+			0.02,				// resistance of the membrane
 			generator(0.,.5),		// capacity of the activation
-			generator(2.,2.),		// sharpness of the peak
-			generator(-3.,3.),	// resting voltage
+			generator(.2,.2),		// sharpness of the peak
+			generator(-3.,1.),	// resting voltage
 			generator(-10.,-5.));	// reset voltage
 
 		neurons.push_back(buffer_neuron);
@@ -97,7 +96,7 @@ int main(){
 
 
 	Connectome Alpha;
-	Alpha.random_init(300,0.5);
+	Alpha.random_init(300,0.2);
 
 	double dt=0.01;
 	double t;
@@ -113,6 +112,5 @@ int main(){
 		}
 		cout << endl;
 	}
-
 	return 0;
 }
