@@ -1,15 +1,8 @@
 #include <iostream>
 #include <cmath>
+#include "generators.h"
 
 /* exponential firing model with a forced refactory period*/
-
-
-double generator(double min, double max){
-  double r_number = (double)rand()/RAND_MAX;
-  double range = max-min;
-  return min+range*r_number;
-};
-
 
 
 class Neuron {
@@ -64,11 +57,11 @@ void Neuron::init(double u_in,
 }
 
 double Neuron::du(double dt,double in_current) {
-  if (u < r_threshhold & (spike_timer >= reset_time)) {
+  if ((u < r_threshhold) & (spike_timer >= reset_time)) {
     double result;
     result = u_rest-u;
     result += delta_t*exp((u-f_threshhold)/delta_t)+r*in_current;
-    result += generator(-2,2);
+    result += random_generator(-1.,1.);
     return fmin(dt*result,r_threshhold-u);
   } else if (u<r_threshhold) {
     spike_timer += dt;

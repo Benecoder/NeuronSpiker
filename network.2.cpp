@@ -6,26 +6,17 @@
 
 using namespace std;
 
-vector<double> vector_generator(double min,double max,int length) {
-	vector<double> result(length);
-	int i;
-	for(i=0;i<length;i++){
-		result[i] = generator(min,max);
-	}
-	return result;
-}
-
 
 class Connectome {
 	public:
 		int n_neurons;
 		double pruning_threshhold;
-		vector<vector<double> > weights;
+		Matrix weights;
 		vector<Neuron> neurons;
 
 		void random_init(int n_neurons_in,double pruning_threshhold);
 		void prune_weights();
-		void step(double dt);
+		void step(double dt,vector<double> input);
 };
 
 void Connectome::prune_weights(){
@@ -39,9 +30,10 @@ void Connectome::prune_weights(){
 	}
 }
 
+
 void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 
-	srand(2);
+	srand(3);
 	
 	n_neurons = n_neurons_in;
 	pruning_threshhold = pruning_threshhold_in;
@@ -50,20 +42,20 @@ void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 	for(i=0;i<n_neurons;i++){
 
 		//Connections		
-		weights.push_back(vector_generator(-0.1,1.,n_neurons));
+		weights.push_back(random_vector_generator(-1.,.1,n_neurons));
 
 		//Nodes
 		Neuron buffer_neuron;
 		buffer_neuron.init(
-			generator(0.,10), 	// voltage across the neuron
-			generator(0.,18),	// firing threshhold
+			random_generator(0.,10), 	// voltage across the neuron
+			random_generator(0.,18),	// firing threshhold
 			30,			// reset threshhold
-			generator(0.,.02),	// resistance of the membrane
-			generator(0.,.5),	// capacity of the activation
+			random_generator(0.2,4.),	// resistance of the membrane
+			random_generator(.1,.1),	// capacity of the activation
 			2.,			// sharpness of the peak
-			generator(-3.,3.),	// resting voltage
-			generator(-10.,-5.),	// reset voltage
-                        .5);			// refactorisation time
+			random_generator(-3.,5.),	// resting voltage
+			random_generator(-10.,-5.),	// reset voltage
+            .2);			// refactorisation time
 
 		neurons.push_back(buffer_neuron);
 
@@ -72,7 +64,7 @@ void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 }
 
 
-void Connectome::step(double dt) {
+void Connectome::step(double dt,vector<double> input) {
 
 	int neuron_index;
 	int sec_neuron_index;
@@ -86,7 +78,9 @@ void Connectome::step(double dt) {
 			signal = neurons[sec_neuron_index].u*weights[neuron_index][sec_neuron_index];
 			external_current[neuron_index] += signal;
 		}
+		external_current[neuron_index] += input[neuron_index]; 
 	}
+
 
 	//calculate step
 	for(neuron_index=0;neuron_index<n_neurons;neuron_index++){
@@ -94,23 +88,32 @@ void Connectome::step(double dt) {
 	}
 }
 
+//void Connectome::simulate_input(Matrix in_data){
+
+//}
+
 int main(){
 
-
 	Connectome Alpha;
-	Alpha.random_init(300,0.0);
+	Alpha.random_init(400,-0.1);
 
-	double dt=0.01;
+	double dt=0.05;
 	double t;
 	int i;
 
-	cout << "t u1 u2 u3 u4 u5" << endl;
+	vector<double> stimulation((int)50.0/dt);
 
-	for(t=0;t<10;t+=dt){
-		Alpha.step(dt);
+	for(i=0;i<100;i++){
+		stimulation[i] = 5.;
+	}
+
+	cout << "t u1 u2 u3 u1_ft u2_ft u3_ft" << endl;
+
+	for(t=0;t<50;t+=dt){
 		cout << t << " ";
-		for(i=0;i<300;i++){
-			cout << Alpha.neurons[i].u << " ";
+		Alpha.step(dt,stimulation);
+		for(i=0;i<400;i++){
+			cout << (double) (Alpha.neurons[i].u >= Alpha.neurons[i].r_threshhold) << " ";
 		}
 		cout << endl;
 	}
