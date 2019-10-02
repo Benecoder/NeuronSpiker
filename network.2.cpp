@@ -17,6 +17,7 @@ class Connectome {
 		void random_init(int n_neurons_in,double pruning_threshhold);
 		void prune_weights();
 		void step(double dt,vector<double> input);
+		void simulate(double dt,Matrix stimulation_data);
 };
 
 void Connectome::prune_weights(){
@@ -72,13 +73,17 @@ void Connectome::step(double dt,vector<double> input) {
 
 	vector<double> external_current(n_neurons);
 
+	int stimulated_neurons=input.size();
+
 	//collect external signals
 	for(neuron_index=0;neuron_index<n_neurons;neuron_index++){
 		for(sec_neuron_index=0;sec_neuron_index<n_neurons;sec_neuron_index++){
 			signal = neurons[sec_neuron_index].u*weights[neuron_index][sec_neuron_index];
 			external_current[neuron_index] += signal;
 		}
-		external_current[neuron_index] += input[neuron_index]; 
+		if(neuron_index<stimulated_neurons){
+			external_current[neuron_index] += input[neuron_index];
+		}
 	}
 
 
@@ -88,35 +93,29 @@ void Connectome::step(double dt,vector<double> input) {
 	}
 }
 
-//void Connectome::simulate_input(Matrix in_data){
+void Connectome::simulate(double dt,Matrix in_data){
 
-//}
+	double t;
+	int i,j;
+	double time_length=in_data.size()*dt;
+
+	for(i=0;i<in_data.size();i++){
+		t = i*dt;
+		cout << t << " ";
+		for(j=0;j<n_neurons;j++){
+			cout << neurons[j].u << " ";
+		}
+		cout << endl;
+		step(dt,in_data[i]);
+	}
+}
 
 int main(){
 
 	Connectome Alpha;
 	Alpha.random_init(400,-0.1);
+	Alpha.simulate(0.05,get_xor_data(1000));
 
-	double dt=0.05;
-	double t;
-	int i;
-
-	vector<double> stimulation((int)50.0/dt);
-
-	for(i=0;i<100;i++){
-		stimulation[i] = 5.;
-	}
-
-	cout << "t u1 u2 u3 u1_ft u2_ft u3_ft" << endl;
-
-	for(t=0;t<50;t+=dt){
-		cout << t << " ";
-		Alpha.step(dt,stimulation);
-		for(i=0;i<400;i++){
-			cout << (double) (Alpha.neurons[i].u >= Alpha.neurons[i].r_threshhold) << " ";
-		}
-		cout << endl;
-	}
 
 	return 0;
 }

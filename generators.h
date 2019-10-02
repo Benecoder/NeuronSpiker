@@ -24,13 +24,13 @@ vector<double> random_vector_generator(double min,double max,int length) {
 
 
 Matrix get_xor_data(int length) {
-	vector<double> row(length);
-	Matrix result(3,row);
+	vector<double> row(3);
+	Matrix result(length,row);
 	int i,j;
 
 	//in data
-	for(i=0;i<2;i++){
-		for(j=0;j<length;j++){
+	for(i=0;i<length;i++){
+		for(j=0;j<2;j++){
 			row[j] = (double) (rand()%2);
 		}
 		result[i] = row;
@@ -40,9 +40,9 @@ Matrix get_xor_data(int length) {
 	//out data
 	bool in_1,in_2;
 	for(j=0;j<length;j++){
-		in_1 = (bool)result[0][j];
-		in_2 = (bool)result[1][j];
-		result[2][j] = (double)(in_1^in_2);
+		in_1 = (bool)result[j][0];
+		in_2 = (bool)result[j][1];
+		result[j][2] = (double)(in_1^in_2);
 	}
 
 	return result;
