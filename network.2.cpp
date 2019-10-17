@@ -1,8 +1,10 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
 #include <vector>
 #include "neuron3.h"
+
 
 using namespace std;
 
@@ -18,6 +20,7 @@ class Connectome {
 		void prune_weights();
 		void step(double dt,vector<double> input);
 		void simulate(double dt,Matrix stimulation_data);
+		void frequency_analysis(double dt);
 };
 
 void Connectome::prune_weights(){
@@ -34,7 +37,7 @@ void Connectome::prune_weights(){
 
 void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 
-	srand(3);
+	srand(7);
 	
 	n_neurons = n_neurons_in;
 	pruning_threshhold = pruning_threshhold_in;
@@ -48,14 +51,14 @@ void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 		//Nodes
 		Neuron buffer_neuron;
 		buffer_neuron.init(
-			random_generator(0.,10), 	// voltage across the neuron
-			random_generator(0.,18),	// firing threshhold
-			30,			// reset threshhold
+			5., 	// voltage across the neuron
+			13.,		// firing threshhold
+			30.,		// reset threshhold
 			random_generator(0.2,4.),	// resistance of the membrane
-			random_generator(.1,.1),	// capacity of the activation
+			random_generator(0.,.1),	// capacity of the activation
 			2.,			// sharpness of the peak
-			random_generator(-3.,5.),	// resting voltage
-			random_generator(-10.,-5.),	// reset voltage
+			-3.,	// resting voltage
+			-10.,	// reset voltage
             .2);			// refactorisation time
 
 		neurons.push_back(buffer_neuron);
@@ -99,22 +102,62 @@ void Connectome::simulate(double dt,Matrix in_data){
 	int i,j;
 	double time_length=in_data.size()*dt;
 
+	ofstream activation_data;
+	activation_data.open("network.2.csv");
+
 	for(i=0;i<in_data.size();i++){
 		t = i*dt;
-		cout << t << " ";
+		activation_data << t << " ";
 		for(j=0;j<n_neurons;j++){
-			cout << neurons[j].u << " ";
+			activation_data << neurons[j].u << " ";
 		}
-		cout << endl;
+		activation_data << endl;
 		step(dt,in_data[i]);
 	}
+
+	activation_data.close();
 }
+
+void Connectome::frequency_analysis(double dt){
+
+	double t;
+	int i,j;
+	double n_steps = 1000;
+	double time_length=n_steps*dt;
+	vector<double> in_data(n_neurons,0.);
+	vector<double> last_firing(n_neurons,0.);
+	vector<double> frequency(n_neurons,0.);
+
+	ofstream frequency_data;
+	frequency_data.open("network.2.csv");
+
+	for(i=0;i<n_steps;i++){
+		t = i*dt;
+		frequency_data << t << " ";
+		for(j=0;j<n_neurons;j++){
+
+			// calculates freuqency if new spike is recorded
+			if (neurons[j].u == neurons[j].r_threshhold) {
+				frequency[j] = 1./(t-last_firing[j]);
+				last_firing[j] = t;
+			}
+
+			frequency_data << frequency[j] << " ";
+		}
+		frequency_data << endl;
+
+		step(dt,in_data);
+	}
+
+	frequency_data.close();
+}
+
 
 int main(){
 
 	Connectome Alpha;
 	Alpha.random_init(400,-0.1);
-	Alpha.simulate(0.05,get_xor_data(1000));
+	Alpha.frequency_analysis(0.05);
 
 
 	return 0;

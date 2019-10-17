@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 def image(data):
 	fig,ax = plt.subplots()
 
-	image = ax.imshow(data[1:],cmap='Greys')
+	image = ax.imshow(data[1:])
 	fig.colorbar(image)
 	plt.show()
 

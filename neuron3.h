@@ -61,7 +61,6 @@ double Neuron::du(double dt,double in_current) {
     double result;
     result = u_rest-u;
     result += delta_t*exp((u-f_threshhold)/delta_t)+r*in_current;
-    result += random_generator(-1.,1.);
     return fmin(dt*result,r_threshhold-u);
   } else if (u<r_threshhold) {
     spike_timer += dt;
