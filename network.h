@@ -16,11 +16,12 @@ class Connectome {
 		Matrix weights;
 		vector<Neuron> neurons;
 
-		void random_init(int n_neurons_in,double pruning_threshhold);
+		void random_init(int seed,int n_neurons_in,double pruning_threshhold);
+		void parameter_propagator(int seed);
 		void prune_weights();
 		void step(double dt,vector<double> input);
 		void simulate(double dt,Matrix stimulation_data);
-		void frequency_analysis(double dt);
+		vector<double> frequency_analysis(double n_steps,double dt,bool streaming,string output_name);
 };
 
 void Connectome::prune_weights(){
@@ -35,9 +36,9 @@ void Connectome::prune_weights(){
 }
 
 
-void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
+void Connectome::random_init(int seed,int n_neurons_in,double pruning_threshhold_in=-0.1) {
 
-	srand(7);
+	srand(seed);
 	
 	n_neurons = n_neurons_in;
 	pruning_threshhold = pruning_threshhold_in;
@@ -65,6 +66,21 @@ void Connectome::random_init(int n_neurons_in,double pruning_threshhold_in) {
 
 	}
 	prune_weights();
+}
+
+void Connectome::parameter_propagator(int seed){
+
+	srand(seed);
+	int i,j;
+	double spread = 0.1;
+
+	for(i=0;i<n_neurons;i++){
+		neurons[i].r += random_generator(-spread,spread);
+		neurons[i].c += random_generator(-spread,spread);
+		for(j=0;j<n_neurons;j++){
+			weights[i][j] += random_generator(-spread,spread);
+		} 
+	}
 }
 
 
@@ -118,22 +134,25 @@ void Connectome::simulate(double dt,Matrix in_data){
 	activation_data.close();
 }
 
-void Connectome::frequency_analysis(double dt){
+vector<double> Connectome::frequency_analysis(double n_steps=1000,double dt=0.05,bool streaming=false,string output_name= "frequency.csv"){
 
 	double t;
 	int i,j;
-	double n_steps = 1000;
 	double time_length=n_steps*dt;
 	vector<double> in_data(n_neurons,0.);
 	vector<double> last_firing(n_neurons,0.);
 	vector<double> frequency(n_neurons,0.);
 
 	ofstream frequency_data;
-	frequency_data.open("network.2.csv");
+	if(streaming){
+		frequency_data.open(output_name);
+	}
 
 	for(i=0;i<n_steps;i++){
 		t = i*dt;
-		frequency_data << t << " ";
+		if(streaming){
+			frequency_data << t << " ";
+		}
 		for(j=0;j<n_neurons;j++){
 
 			// calculates freuqency if new spike is recorded
@@ -142,23 +161,21 @@ void Connectome::frequency_analysis(double dt){
 				last_firing[j] = t;
 			}
 
-			frequency_data << frequency[j] << " ";
+			if(streaming){
+  				frequency_data << frequency[j] << " ";
+
+			}
 		}
-		frequency_data << endl;
+		if(streaming){
+			frequency_data << endl;
+		}
 
 		step(dt,in_data);
 	}
-
-	frequency_data.close();
+	if(streaming){
+		frequency_data.close();
+	}
+	return frequency;
 }
 
 
-int main(){
-
-	Connectome Alpha;
-	Alpha.random_init(400,-0.1);
-	Alpha.frequency_analysis(0.05);
-
-
-	return 0;
-}
